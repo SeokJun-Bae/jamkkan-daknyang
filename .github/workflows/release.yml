@@ -45,14 +45,25 @@ jobs:
           --clean
           --onefile
           --windowed
-          --name "잠깐닦냥"
+          --name "JamkkanDaknyang"
           main.py
+
+      - name: Install Inno Setup
+        run: choco install innosetup --no-progress --yes
+
+      - name: Build Windows installer
+        shell: pwsh
+        run: |
+          $appVersion = python -c "from dakknyang import __version__; print(__version__)"
+          $compiler = "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe"
+          & $compiler "/DMyAppVersion=$appVersion" "installer.iss"
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
       - name: Upload workflow artifact
         uses: actions/upload-artifact@v6
         with:
-          name: Jamkkan-Daknyang-Windows
-          path: dist/잠깐닦냥.exe
+          name: Jamkkan-Daknyang-Setup
+          path: dist/JamkkanDaknyang-Setup.exe
           if-no-files-found: error
 
       - name: Publish GitHub Release
@@ -62,7 +73,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: >-
           gh release create "$env:GITHUB_REF_NAME"
-          "dist/잠깐닦냥.exe"
+          "dist/JamkkanDaknyang-Setup.exe"
           --verify-tag
           --generate-notes
           --title "잠깐닦냥 $env:GITHUB_REF_NAME"
